@@ -14,7 +14,13 @@ contract Lottery {
         players.push(msg.sender);
     }
 
-    function pickWinner() public payable {}
+    function pickWinner() public restricted {
+        uint256 index = random() % players.length;
+        address payable winner = payable(players[index]);
+        winner.transfer(address(this).balance);
+
+        players = new address[](0);
+    }
 
     function random() private view returns (uint256) {
         return
@@ -23,5 +29,14 @@ contract Lottery {
                     abi.encodePacked(block.difficulty, block.timestamp, players)
                 )
             );
+    }
+
+    function getPlayers() public view returns (address[] memory) {
+        return players;
+    }
+
+    modifier restricted() {
+        require(msg.sender == manager);
+        _;
     }
 }
